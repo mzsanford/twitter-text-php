@@ -1,0 +1,37 @@
+{
+  "name": "nojimage/twitter-text-php",
+  "description": "A library of PHP classes that provide auto-linking and extraction of usernames, lists, hashtags and URLs from tweets.",
+  "keywords": ["twitter", "text", "autolink", "extract"],
+  "homepage": "https://github.com/nojimage/twitter-text-php",
+  "type": "library",
+  "license": "Apache-2.0",
+  "authors": [
+  {
+    "name": "Matt Sanford",
+    "email": "matt@mzsanford.com",
+    "homepage":"http://mzsanford.com"
+  },
+  {
+    "name": "Mike Cochrane",
+    "email": "mikec@mikenz.geek.nz",
+    "homepage":"http://mikenz.geek.nz"
+  },
+  {
+    "name": "Nick Pope",
+    "email": "git@nickpope.me.uk",
+    "homepage":"http://www.nickpope.me.uk"
+  },
+  {
+    "name": "Takashi Nojima",
+    "homepage":"http://php-tips.com"
+  }
+  ],
+  "require": {
+    "php": ">=5.2.8"
+  },
+  "autoload": {
+    "psr-0": {
+      "Twitter_": "lib/"
+    }
+  }
+}

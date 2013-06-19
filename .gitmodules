@@ -1,3 +1,6 @@
 [submodule "tests/data/twitter-text-conformance"]
 	path = tests/data/twitter-text-conformance
 	url = https://github.com/twitter/twitter-text-conformance
+[submodule "tests/spyc"]
+	path = tests/spyc
+	url = https://github.com/mustangostang/spyc.git

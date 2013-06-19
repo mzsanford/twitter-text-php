@@ -1,5 +1,6 @@
 # Backup and Swap Files
 .*.sw?
+.swp
 *.bak
 *~
 
@@ -11,6 +12,14 @@ Thumbs.db
 .DS_Store
 __MACOSX
 
-# Project Specific
+# Other SCM Tool Files
+CVS
+.bzr
+.bzrignore
+.hg
+.hgignore
+.hgtags
+.svn
+
+# Project-specific Files
 build
-tests/spyc

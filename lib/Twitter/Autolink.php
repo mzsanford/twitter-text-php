@@ -56,25 +56,39 @@ class Twitter_Autolink extends Twitter_Regex {
   protected $class_hash = 'hashtag';
 
   /**
+   * CSS class for auto-linked cashtag URLs.
+   *
+   * @var  string
+   */
+  protected $class_cash = 'cashtag';
+
+  /**
    * URL base for username links (the username without the @ will be appended).
    *
    * @var  string
    */
-  protected $url_base_user = 'http://twitter.com/';
+  protected $url_base_user = 'https://twitter.com/';
 
   /**
    * URL base for list links (the username/list without the @ will be appended).
    *
    * @var  string
    */
-  protected $url_base_list = 'http://twitter.com/';
+  protected $url_base_list = 'https://twitter.com/';
 
   /**
    * URL base for hashtag links (the hashtag without the # will be appended).
    *
    * @var  string
    */
-  protected $url_base_hash = 'http://twitter.com/search?q=%23';
+  protected $url_base_hash = 'https://twitter.com/#!/search?q=%23';
+
+  /**
+   * URL base for cashtag links (the hashtag without the $ will be appended).
+   *
+   * @var  string
+   */
+  protected $url_base_cash = 'https://twitter.com/#!/search?q=%24';
 
   /**
    * Whether to include the value 'nofollow' in the 'rel' attribute.
@@ -229,6 +243,27 @@ class Twitter_Autolink extends Twitter_Regex {
   }
 
   /**
+   * CSS class for auto-linked cashtag URLs.
+   *
+   * @return  string  CSS class for cashtag links.
+   */
+  public function getCashtagClass() {
+    return $this->class_cash;
+  }
+
+  /**
+   * CSS class for auto-linked cashtag URLs.
+   *
+   * @param  string  $v  CSS class for cashtag links.
+   *
+   * @return  Twitter_Autolink  Fluid method chaining.
+   */
+  public function setCashtagClass($v) {
+    $this->class_cash = trim($v);
+    return $this;
+  }
+
+  /**
    * Whether to include the value 'nofollow' in the 'rel' attribute.
    *
    * @return  bool  Whether to add 'nofollow' to the 'rel' attribute.
@@ -318,6 +353,7 @@ class Twitter_Autolink extends Twitter_Regex {
     $original = $this->tweet;
     $this->tweet = $this->addLinksToURLs();
     $this->tweet = $this->addLinksToHashtags();
+    $this->tweet = $this->addLinksToCashtags();
     $this->tweet = $this->addLinksToUsernamesAndLists();
     $modified = $this->tweet;
     $this->tweet = $original;
@@ -331,8 +367,20 @@ class Twitter_Autolink extends Twitter_Regex {
    */
   public function addLinksToHashtags() {
     return preg_replace_callback(
-      self::REGEX_HASHTAG,
+      self::$patterns['valid_hashtag'],
       array($this, '_addLinksToHashtags'),
+      $this->tweet);
+  }
+
+  /**
+   * Adds links to cashtag elements in the tweet.
+   *
+   * @return  string  The modified tweet.
+   */
+  public function addLinksToCashtags() {
+    return preg_replace_callback(
+      self::$patterns['valid_cashtag'],
+      array($this, '_addLinksToCashtags'),
       $this->tweet);
   }
 
@@ -343,7 +391,7 @@ class Twitter_Autolink extends Twitter_Regex {
    */
   public function addLinksToURLs() {
     return preg_replace_callback(
-      self::$REGEX_VALID_URL,
+      self::$patterns['valid_url'],
       array($this, '_addLinksToURLs'),
       $this->tweet);
   }
@@ -355,7 +403,7 @@ class Twitter_Autolink extends Twitter_Regex {
    */
   public function addLinksToUsernamesAndLists() {
     return preg_replace_callback(
-      self::REGEX_USERNAME_LIST,
+      self::$patterns['valid_mentions_or_lists'],
       array($this, '_addLinksToUsernamesAndLists'),
       $this->tweet);
   }
@@ -385,6 +433,31 @@ class Twitter_Autolink extends Twitter_Regex {
   }
 
   /**
+   * Wraps a tweet element in an HTML anchor tag using the provided URL.
+   *
+   * This is a helper function to perform the generation of the hashtag link.
+   *
+   * @param  string  $url      The URL to use as the href.
+   * @param  string  $class    The CSS class(es) to apply (space separated).
+   * @param  string  $element  The tweet element to wrap.
+   *
+   * @return  string  The tweet element with a link applied.
+   */
+  protected function wrapHash($url, $class, $element) {
+    $link  = '<a';
+    $link .= ' href="'.$url.'"';
+    $link .= ' title="'.$element.'"';
+    if ($class) $link .= ' class="'.$class.'"';
+    $rel = array();
+    if ($this->external) $rel[] = 'external';
+    if ($this->nofollow) $rel[] = 'nofollow';
+    if (!empty($rel)) $link .= ' rel="'.implode(' ', $rel).'"';
+    if ($this->target) $link .= ' target="'.$this->target.'"';
+    $link .= '>'.$element.'</a>';
+    return $link;
+  }
+
+  /**
    * Callback used by the method that adds links to hashtags.
    *
    * @see  addLinksToHashtags()
@@ -394,10 +467,43 @@ class Twitter_Autolink extends Twitter_Regex {
    * @return  string  The link-wrapped hashtag.
    */
   protected function _addLinksToHashtags($matches) {
-    $replacement = $matches[1];
-    $element = $matches[2] . $matches[3];
-    $url = $this->url_base_hash . $matches[3];
-    $replacement .= $this->wrap($url, $this->class_hash, $element);
+    list($all, $before, $hash, $tag, $after) = array_pad($matches, 5, '');
+    if (preg_match(self::$patterns['end_hashtag_match'], $after)
+        || (!preg_match('!\A["\']!', $before) && preg_match('!\A["\']!', $after))
+        || preg_match('!\A</!', $after)) {
+      return $all;
+    }
+    $replacement = $before;
+    $element = $hash . $tag;
+    $url = $this->url_base_hash . $tag;
+    $class_hash = $this->class_hash;
+    if (preg_match(self::$patterns['rtl_chars'], $element)) {
+      $class_hash .= ' rtl';
+    }
+    $replacement .= $this->wrapHash($url, $class_hash, $element);
+    return $replacement;
+  }
+
+  /**
+   * Callback used by the method that adds links to cashtags.
+   *
+   * @see  addLinksToCashtags()
+   *
+   * @param  array  $matches  The regular expression matches.
+   *
+   * @return  string  The link-wrapped cashtag.
+   */
+  protected function _addLinksToCashtags($matches) {
+    list($all, $before, $cash, $tag, $after) = array_pad($matches, 5, '');
+    if (preg_match(self::$patterns['end_cashtag_match'], $after)
+        || (!preg_match('!\A["\']!', $before) && preg_match('!\A["\']!', $after))
+        || preg_match('!\A</!', $after)) {
+      return $all;
+    }
+    $replacement = $before;
+    $element = $cash . $tag;
+    $url = $this->url_base_cash . $tag;
+    $replacement .= $this->wrapHash($url, $this->class_cash, $element);
     return $replacement;
   }
 
@@ -413,9 +519,8 @@ class Twitter_Autolink extends Twitter_Regex {
   protected function _addLinksToURLs($matches) {
     list($all, $before, $url, $protocol, $domain, $path, $query) = array_pad($matches, 7, '');
     $url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8', false);
-    if (!$protocol && !preg_match(self::REGEX_PROBABLE_TLD, $domain)) return $all;
-    $href = ((!$protocol || strtolower($protocol) === 'www.') ? 'http://'.$url : $url);
-    return $before . $this->wrap($href, $this->class_url, $url);
+    if (!$protocol) return $all;
+    return $before . $this->wrap($url, $this->class_url, $url);
   }
 
   /**
@@ -430,21 +535,26 @@ class Twitter_Autolink extends Twitter_Regex {
   protected function _addLinksToUsernamesAndLists($matches) {
     list($all, $before, $at, $username, $slash_listname, $after) = array_pad($matches, 6, '');
     # If $after is not empty, there is an invalid character.
-    if (!empty($after)) return $all;
     if (!empty($slash_listname)) {
       # Replace the list and username
-      $element = $username . substr($slash_listname, 0, 26);
+      $element = $username . $slash_listname;
       $class = $this->class_list;
       $url = $this->url_base_list . $element;
-      $postfix = substr($slash_listname, 26);
     } else {
+      if (preg_match(self::$patterns['end_mention_match'], $after)) return $all;
       # Replace the username
       $element = $username;
       $class = $this->class_user;
       $url = $this->url_base_user . $element;
-      $postfix = '';
     }
-    return $before . $at . $this->wrap($url, $class, $element) . $postfix . $after;
+    # XXX: Due to use of preg_replace_callback() for multiple replacements in a
+    #      single tweet and also as only the match is replaced and we have to
+    #      use a look-ahead for $after because there is no equivalent for the
+    #      $' (dollar apostrophe) global from Ruby, we MUST NOT append $after.
+    return $before . $at . $this->wrap($url, $class, $element);
   }
 
 }
+
+################################################################################
+# vim:et:ft=php:nowrap:sts=2:sw=2:ts=2

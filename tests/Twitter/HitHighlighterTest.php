@@ -44,3 +44,6 @@ class Twitter_HitHighlighterTest extends PHPUnit_Framework_TestCase {
   }
 
 }
+
+################################################################################
+# vim:et:ft=php:nowrap:sts=2:sw=2:ts=2

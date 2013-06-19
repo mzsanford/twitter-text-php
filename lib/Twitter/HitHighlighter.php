@@ -200,3 +200,6 @@ class Twitter_HitHighlighter extends Twitter_Regex {
   }
 
 }
+
+################################################################################
+# vim:et:ft=php:nowrap:sts=2:sw=2:ts=2

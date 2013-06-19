@@ -30,6 +30,11 @@ Cochrane, this library has been improved and made more complete by Nick Pope.
  - Support for highlighting when tweet has already been autolinked.
  - Support for international character sets.
 
+### Validation ###
+
+ - Validate different twitter text elements.
+ - Support for international character sets.
+
 ## Examples ##
 
 For examples, please see `tests/example.php` which you can view in a browser or
@@ -40,17 +45,19 @@ run from the command line.
 You'll need the test data which is in YAML format from the following
 repository:
 
+<<<<<<< HEAD
     http://github.com/mzsanford/twitter-text-conformance
+    
+As PHP has no native support for YAML you'll need spyc:
+=======
+    https://github.com/twitter/twitter-text-conformance
 
-It has already been added as a git submodule so you should just need to run:
+    https://github.com/mustangostang/spyc/
+
+Both requirements have already been added as a git submodule so you should just need to run:
 
     git submodule init
     git submodule update
-
-As PHP has no native support for YAML you'll need to checkout spyc from svn
-into `tests/spyc`:
-
-    svn checkout http://spyc.googlecode.com/svn/trunk/ tests/spyc
 
 There are a couple of options for testing conformance:
 
@@ -63,5 +70,7 @@ There are a couple of options for testing conformance:
 
 The bulk of this library is from the heroic efforts of:
 
- - Mike Cochrane (https://github.com/mikenz): For the original code
+ - Matt Sanford (https://github.com/mzsanford): For the orignal Ruby and Java implementions.
+ - Mike Cochrane (https://github.com/mikenz): For the initial PHP code.
  - Nick Pope (https://github.com/ngnpope): For the bulk of the maintenance work to date.
+ - Takashi Nojima (https://github.com/nojimage): For ongoing maintenance work.
