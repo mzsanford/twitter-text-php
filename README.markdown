@@ -65,3 +65,7 @@ The bulk of this library is from the heroic efforts of:
 
  - Mike Cochrane (https://github.com/mikenz): For the original code
  - Nick Pope (https://github.com/ngnpope): For the bulk of the maintenance work to date.
+
+## Notes ##
+
+- Twitter will auto link second domains for valid country code extensions like `www.github.io` but will not auto link first level domains like `github.io` while this class will auto link both. Twitter will not auto link non existent country codes like `github.pp` while this class will. If you're using this class to predict tweet length, you should be aware of these differences.
